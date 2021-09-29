@@ -28,35 +28,11 @@ def port_scanner(port, host):
     # пытаемся приконнектить его к порту
     try:
         sock.connect((host, port))
-    except ConnectionRefusedError:
+    except:
         # если соединение прервано, то порт закрыт и мы не смогли к нему присоединиться
         # добавим его в список закрытых портов, заблокировав работу с переменной для других потоков
         with print_lock:
             locked_ports.append(port)
-
-    except TimeoutError as err:
-        # в случае получения такой ошибки мы в принципе не можем получить доступ к хосту смысла сканировать порты нет, нужно менять IP
-        with print_lock:
-            if '10060' in str(err):
-                pass
-                # print('unreachable host!', host)
-            else:
-                # если получили другой код ошибки, то выведем его, потому что ее нужно обработать по иному и изменим программу
-                # в идеале данный блок отрабатывать не должен
-                raise 
-
-    except OSError as err:
-        with print_lock:
-            # слишком много потоков, буфер переполнился все упадет в ошибку
-            if '10055' in str(err):
-                print('Too much daemons, set daemon count fewer!')
-            # пытаемся получить доступ к порту не тем методом доступа, добавим в отдельный список
-            elif '10013' in str(err):
-                forbidden_access_method_ports.append(port)
-            else:
-                # если получили другой код ошибки, то выведем его, потому что ее нужно обработать по иному и изменим программу
-                # в идеале данный блок отрабатывать не должен
-                raise
 
 
     #10055 слишком много потоков, буфер переполнился все упадет в ошибку
@@ -151,16 +127,14 @@ ports_list = [i for i in range(START_PORT,PORTS_COUNT)]
 open_ports = []
 # сюда будем записывать закрытые порты
 locked_ports = []
-# сюда будем записывать порты с иным методом доступа
-forbidden_access_method_ports = []
+
 
 # запускаем основную функцию сканирования, смотрим в нее
 scanning(host, ports_list)
 
 # выполнение кода после этой строки не продолжится, пока не разблокируем основной поток
-# отсортируем все три списка портов
+# отсортируем все два списка портов
 open_ports.sort()
 locked_ports.sort()
-forbidden_access_method_ports.sort()
 # напечатаем только открытые порты
 print('Open ports:', '; '.join([str(i) for i in open_ports]))
