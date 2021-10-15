@@ -6,7 +6,6 @@ sock = socket.socket()
 sock.connect(('localhost', 6555))
 while True:
     #msg = input()
-
     msg = input('...')
     sock.send(msg.encode())
 
