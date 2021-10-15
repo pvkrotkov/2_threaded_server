@@ -8,7 +8,7 @@ max = 4
 open_ports = []
 ports = []
 answer = []
-to = 1000
+to = 5
 fr = 1
 
 
@@ -34,6 +34,7 @@ class Threads(Thread):
     def run(self):
         for port in range(fr + int(self.name), to, max):
             with socket.socket() as s:
+                s.settimeout(4)
                 try:
                     s.connect((self.addr, port))
                     open_ports.append(port)
