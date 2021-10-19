@@ -1,16 +1,69 @@
 import socket
-from time import sleep
+import threading
 
-sock = socket.socket()
-sock.setblocking(1)
-sock.connect(('10.38.165.12', 9090))
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-#msg = input()
-msg = "Hi!"
-sock.send(msg.encode())
+host = input("Enter server's ip-address: ")
+port = int(input("Enter server's port number: "))
+name = input("Enter your name: ")
 
-data = sock.recv(1024)
+sock.connect((host, port))
+sock.send(name.encode())
+# Прошла ли авторизация
+flag = False
+# Клиент подключён
+connection = True
+
+
+def authorization(sock, data):
+	global flag
+	if not flag:
+		data = data.split('|')
+		print(data[0] + data[2] + data[3])
+		if data[1] == "0003":
+			passwd = input("Create password: ")
+			sock.send(passwd.encode())
+			flag = True
+		elif data[1] == "0002":
+			passwd = input("Enter password: ")
+			sock.send(passwd.encode())
+		elif data[1] == "0001":
+			flag = True
+
+
+def receive(sock):
+	global flag
+	global connection
+	while True:
+		if connection:
+			data = sock.recv(1024)
+			if not flag:
+				authorization(sock, data.decode())
+			else:
+				print(data.decode())
+		else:
+			break
+	sock.close()
+
+
+def send_message(sock):
+	global flag
+	global connection
+	msg = ""
+	while msg != "exit":
+		if flag:
+			msg = input('You: ')
+			sock.send(msg.encode())
+	connection = False
+
+
+receiveThread = threading.Thread(target=receive, args=[sock])
+sendThread = threading.Thread(target=send_message, args=[sock])
+
+receiveThread.start()
+sendThread.start()
+
+receiveThread.join()
+sendThread.join()
 
 sock.close()
-
-print(data.decode())
