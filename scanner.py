@@ -3,12 +3,12 @@ import socket
 from threading import Thread
 from progress.bar import IncrementalBar # необходима сторонняя библиотека progress
 
-def scan(first, last): # сканируем порты
+def scan(first, last, ip): # сканируем порты
     for port in range(first,last): # по очереди
-        sock = socket.socket() # сокет создаем
+        sock = socket.socket() # создаем сокет
         try:
             scanned.append(port) # запоминаем, что мы просканировали порт
-            sock.connect(('127.0.0.1', port)) # пытаемся присоединиться
+            sock.connect((ip, port)) # пытаемся присоединиться
             openned.append(port) # если получается, решаем что он открыт
         except:
             continue
@@ -28,6 +28,7 @@ def printing():
             continue
 
 
+ip = input("К какому порту вы хотите присоединиться: ")
 N = 2**16 - 1 # кол-во портов
 openned = [] # открытые порты
 scanned = [] #просканированые порты
